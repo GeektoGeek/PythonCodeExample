@@ -1,0 +1,749 @@
+
+import tensorflow as ts
+import pandas as pd
+import os
+import seaborn as sns
+import scipy.stats as stats
+import math
+import numpy as np
+import pandasql as ps
+import pandas as pd
+import sqlite3
+import pandas.io.sql as psql
+import ast
+import re
+import datetime as dt
+import seaborn as sb
+import sklearn
+import camelot
+from pandasql import sqldf
+from pandasql import *
+from sqlalchemy import create_engine
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer   
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
+from sklearn.decomposition import PCA
+from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
+from operator import attrgetter
+from sklearn.metrics import silhouette_samples
+import featuretools as ft
+from os import path
+from PIL import Image
+from datetime import datetime 
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+ps = lambda q: sqldf(q, globals())
+from scipy.stats import pearsonr
+sns.set(style='white', font_scale=1.2)
+import h2o
+from h2o.automl import H2OAutoML
+h2o.init(max_mem_size='4G')
+import warnings
+import itertools
+import numpy as np
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from scipy import stats
+
+
+from datetime import datetime, timedelta,date
+
+##%matplotlib inline
+import matplotlib.pyplot as plt
+
+import xgboost as xgb
+from sklearn.metrics import mean_squared_error
+import pandas as pd
+import numpy as np
+
+##from __future__ import division
+
+sess = ts.Session()
+a = ts.constant(10)
+b = ts.constant(32)
+print(sess.run(a+b))
+
+a = ts.constant(10)
+b = ts.constant(32)
+print(sess.run(a+b))
+
+pysqldf = lambda q: sqldf(q, globals())
+
+import keras
+from keras.layers import Dense
+from keras.models import Sequential
+from keras.optimizers import Adam 
+from keras.callbacks import EarlyStopping
+from keras.utils import np_utils
+from keras.layers import LSTM
+from sklearn.model_selection import KFold, cross_val_score, train_test_split
+
+
+NWSubIlls = pd.read_csv('C:/Users/test/Documents/NWSubIllusWeeklyReviews/RawFiles/NWSubmits20192020.csv',encoding= 'iso-8859-1')
+
+NWSubIlls.columns = NWSubIlls.columns.str.replace(' ', '')
+
+NWSubIlls.columns = NWSubIlls.columns.str.lstrip()
+
+NWSubIlls.columns = NWSubIlls.columns.str.rstrip()
+
+NWSubIlls.columns = NWSubIlls.columns.str.strip()
+
+NWSubIlls['SubmitDay'] = NWSubIlls['SubmitDate'].astype('datetime64[ns]')
+
+NWSubIlls['SubmitDate'] = NWSubIlls['SubmitDate'].astype('datetime64[ns]')
+
+NWSub2020 = pd.read_csv('C:/Users/test/Documents/NWSubIllusWeeklyReviews/RawFiles/NWSubmits2020.csv',encoding= 'iso-8859-1')
+
+NWSub2020.columns = NWSub2020.columns.str.replace(' ', '')
+
+NWSub2020.columns = NWSub2020.columns.str.lstrip()
+
+NWSub2020.columns = NWSub2020.columns.str.rstrip()
+
+NWSub2020.columns = NWSub2020.columns.str.strip()
+
+con = sqlite3.connect("NWSubIlls.db")
+
+NWSubIlls.to_sql("NWSubIlls", con, if_exists='replace')
+
+NWSubIlls.info()
+
+DF = NWSubIlls[['AdvisorContactIDText', 'SubmitAmount','SubmitCount','AdvisorName1','SubmitDate','SubmitDay']]
+
+DF.head(10)
+
+df1 = DF.resample('W', on='SubmitDay').sum()
+
+df1['WeekDate'] = df1.index
+
+df2 = DF.resample('W', on='SubmitDate').sum()
+
+df2['WeekDate'] = df2.index
+
+Out4 = df2.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\df2.csv', index = None, header=True)
+
+
+Illustration = pd.read_csv('C:/Users/test/Documents/NWSubIllusWeeklyReviews/RawFiles/IllustrationRaw20192020.csv',encoding= 'iso-8859-1')
+
+
+Illustration.columns = Illustration.columns.str.replace(' ', '')
+
+Illustration.columns = Illustration.columns.str.lstrip()
+
+Illustration.columns = Illustration.columns.str.rstrip()
+
+Illustration.columns = Illustration.columns.str.strip()
+
+Illustration.info()
+
+Illustration['PreparationDate'] = Illustration['PreparationDate'].astype('datetime64[ns]')
+
+
+DFF = Illustration[['IllustrationId', 'IllustrationCount','ContractSum','PreparationDate']]
+
+dff1 = DFF.resample('W', on='PreparationDate').sum()
+
+Test= dff1['IllustrationCount'].sum()
+
+dff1['IllustrationWeek'] = dff1.index
+
+Out5 = dff1.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\dff1.csv', index = None, header=True)
+
+# insert the data from dataframe into database so that if you run multiple times it will be replaced and create a table
+con = sqlite3.connect("df1.db")
+
+df1.to_sql("df1", con, if_exists='replace')
+
+df1.info()
+
+con = sqlite3.connect("dff1.db")
+
+dff1.to_sql("dff1", con, if_exists='replace')
+
+dff1.info()
+
+q2  = """SELECT b.SubmitAmount, b.SubmitCount, b.WeekDate, a.IllustrationCount, a.ContractSum, a.IllustrationWeek FROM dff1 a INNER JOIN df1 b on b.WeekDate=a.IllustrationWeek """
+
+DFF_Final =  pysqldf(q2)  
+
+print(f'Size of training set: {DFF_Final.shape[0]} rows and {DFF_Final.shape[1]} columns')
+
+DFF_Final.info()
+
+DFF_FinalSubset= DFF_Final[['SubmitAmount', 'IllustrationCount']]
+
+#### Weekly data AutoML could not process due to sample size of 200
+
+### Lets do daily data
+
+df1_D = DF.resample('D', on='SubmitDay').sum()
+
+df1_D['DailyDate'] = df1_D.index
+
+dff1_D = DFF.resample('D', on='PreparationDate').sum()
+
+Test= dff1_D['IllustrationCount'].sum()
+
+dff1_D['IllustrationDay'] = dff1_D.index
+
+df1_D.to_sql("df1_D", con, if_exists='replace')
+
+df1_D.info()
+
+con = sqlite3.connect("dff1_D.db")
+
+dff1_D.to_sql("dff1_D", con, if_exists='replace')
+
+dff1_D.info()
+
+q3  = """SELECT b.SubmitAmount, b.SubmitCount, b.SubmitDay, a.IllustrationCount, a.ContractSum, a.IllustrationDay FROM dff1_D a INNER JOIN df1_D b on b.SubmitDay=a.IllustrationDay """
+
+DFF_DailyFinal =  pysqldf(q3)  
+
+DFF_DailyFinalSubset1= DFF_DailyFinal[['SubmitAmount', 'IllustrationCount']]
+
+DFF_DailyFinalSubset= DFF_DailyFinal[['SubmitAmount','ContractSum','IllustrationCount']]
+
+
+
+#### 2018
+
+NWSubmits2018 = pd.read_csv('C:/Users/test/Documents/NWSubIllusWeeklyReviews/RawFiles/NWSubmits2018.csv',encoding= 'iso-8859-1')
+
+NWSubmits2018.columns = NWSubmits2018.columns.str.replace(' ', '')
+
+NWSubmits2018.columns = NWSubmits2018.columns.str.lstrip()
+
+NWSubmits2018.columns = NWSubmits2018.columns.str.rstrip()
+
+NWSubmits2018.columns = NWSubmits2018.columns.str.strip()
+
+con = sqlite3.connect("NWSubmits2018.db")
+
+NWSubmits2018.to_sql("NWSubmits2018", con, if_exists='replace')
+
+NWSubmits2018.info()
+
+DF3 = NWSubmits2018[['AdvisorContactIDText', 'SubmitAmount','SubmitCount','AdvisorName1','SubmitDate']]
+
+DF3.head(10)
+
+DF3['SubmitDay'] = DF3['SubmitDate'].astype('datetime64[ns]')
+
+df3 = DF3.resample('W', on='SubmitDay').sum()
+
+df3['WeekDate'] = df3.index
+
+Out7 = df3.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\df3.csv', index = None, header=True)
+
+
+Illustration2018 = pd.read_csv('C:/Users/test/Documents/NWSubIllusWeeklyReviews/RawFiles/Raw2018Illustrations.csv',encoding= 'iso-8859-1')
+
+Illustration2018.columns = Illustration2018.columns.str.replace(' ', '')
+
+Illustration2018.columns = Illustration2018.columns.str.lstrip()
+
+Illustration2018.columns = Illustration2018.columns.str.rstrip()
+
+Illustration2018.columns = Illustration2018.columns.str.strip()
+
+Illustration2018.info()
+
+Illustration2018['PreparationDate'] = Illustration2018['PreparationDate'].astype('datetime64[ns]')
+
+
+DFFF = Illustration2018[['IllustrationId', 'IllustrationCount','ContractSum','PreparationDate']]
+
+dff2 = DFFF.resample('W', on='PreparationDate').sum()
+
+Test= dff2['IllustrationCount'].sum()
+
+dff2['IllustrationWeek'] = dff2.index
+
+Out6 = dff2.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\dff2.csv', index = None, header=True)
+
+
+#### 2017
+
+NWSubmits2017 = pd.read_csv('C:/Users/test/Documents/NWSubIllusWeeklyReviews/RawFiles/NWSubmits2017.csv',encoding= 'iso-8859-1')
+
+NWSubmits2017.columns = NWSubmits2017.columns.str.replace(' ', '')
+
+NWSubmits2017.columns = NWSubmits2017.columns.str.lstrip()
+
+NWSubmits2017.columns = NWSubmits2017.columns.str.rstrip()
+
+NWSubmits2017.columns = NWSubmits2017.columns.str.strip()
+
+con = sqlite3.connect("NWSubmits2017.db")
+
+NWSubmits2017.to_sql("NWSubmits2017", con, if_exists='replace')
+
+NWSubmits2017.info()
+
+DF5 = NWSubmits2017[['AdvisorContactIDText', 'SubmitAmount','SubmitCount','AdvisorName1','SubmitDate']]
+
+DF5.head(10)
+
+DF5['SubmitDay'] = DF5['SubmitDate'].astype('datetime64[ns]')
+
+df5 = DF5.resample('W', on='SubmitDay').sum()
+
+df5['WeekDate'] = df5.index
+
+Out79 = df5.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\df5.csv', index = None, header=True)                
+
+
+Illustration2017 = pd.read_csv('C:/Users/test/Documents/NWSubIllusWeeklyReviews/RawFiles/Raw2017Illustrations.csv',encoding= 'iso-8859-1')
+
+Illustration2017.columns = Illustration2017.columns.str.replace(' ', '')
+
+Illustration2017.columns = Illustration2017.columns.str.lstrip()
+
+Illustration2017.columns = Illustration2017.columns.str.rstrip()
+
+Illustration2017.columns = Illustration2017.columns.str.strip()
+
+Illustration2017.info()
+
+Illustration2017['PreparationDate'] = Illustration2017['PreparationDate'].astype('datetime64[ns]')
+
+
+DFFFF = Illustration2017[['IllustrationId', 'IllustrationCount','ContractSum','PreparationDate']]
+
+dfff7 = DFFFF.resample('W', on='PreparationDate').sum()
+ 
+Test= dfff7['IllustrationCount'].sum()
+
+dfff7['IllustrationWeek'] = dfff7.index
+
+Out66 = dfff7.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\dfff7.csv', index = None, header=True)
+
+
+
+
+##DFF_Final = pd.DataFrame()
+
+### This was for weekly data
+
+#### Splitting the datasets into training, validation, and test dataset
+
+def train_validate_test_split(df, train_percent=.85, validate_percent=.0, seed=None):
+    np.random.seed(seed)
+    perm = np.random.permutation(df.index)
+    m = len(df.index)
+    train_end = int(train_percent * m)
+    validate_end = int(validate_percent * m) + train_end
+    train = df.iloc[perm[:train_end]]
+    validate = df.iloc[perm[train_end:validate_end]]
+    test = df.iloc[perm[validate_end:]]
+    return train, validate, test
+
+train, validate, test = train_validate_test_split(DFF_DailyFinalSubset)
+
+train.head()
+
+train_h2o = h2o.H2OFrame(train)
+
+valid_h2o = h2o.H2OFrame(validate)
+
+test_h2o = h2o.H2OFrame(test)
+
+# Identify predictors and response
+x = train_h2o.columns
+y = "SubmitAmount"
+#x.remove(y)
+h2o.estimators.xgboost.H2OXGBoostEstimator.available()
+
+aml = H2OAutoML(max_models=20, seed=1)
+aml.train(x=x, y=y, training_frame=train_h2o)
+
+lb = h2o.automl.get_leaderboard(aml, extra_columns = 'ALL')
+
+lb
+
+
+
+lb1 = lb.as_data_frame()
+
+# Get model ids for all models in the AutoML Leaderboard
+model_ids = list(aml.leaderboard['model_id'].as_data_frame().iloc[:,0])
+se = h2o.get_model([mid for mid in model_ids if "StackedEnsemble_AllModels" in mid][0])
+metalearner = h2o.get_model(se.metalearner()['name'])
+
+metalearner.std_coef_plot()
+
+pred = aml.predict(test_h2o)
+pred.head()
+
+test1= test_h2o.as_data_frame()
+
+pred =pred.as_data_frame()
+
+test1['predictedSubmitAmt'] = pred['predict']
+
+def mape(actual, pred): 
+    actual, pred = np.array(actual),np.array(pred)
+    return np.mean(np.abs((actual-pred)/actual))* 100
+
+actual = test1['SubmitAmount']
+pred = test1['predictedSubmitAmt']
+
+mape(actual,pred)
+
+h2o.save_model(aml.leader, path="./product_backorders_model_bin")
+
+lb.head()
+
+lb= lb.as_data_frame()
+
+
+
+h2o.cluster().shutdown()
+
+#### Try to run a LSTM model
+
+###source: https://stackabuse.com/time-series-prediction-using-lstm-with-pytorch-in-python/
+
+## https://towardsdatascience.com/an-end-to-end-project-on-time-series-analysis-and-forecasting-with-python-4835e6bf050b
+
+df1_D.shape
+
+df1_D.info()
+
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0] = 15
+fig_size[1] = 5
+plt.rcParams["figure.figsize"] = fig_size
+
+plt.title('Time vs Submit')
+plt.ylabel('Submit Amount')
+plt.xlabel('Time')
+plt.grid(True)
+plt.autoscale(axis='x',tight=True)
+plt.plot(df1_D['SubmitAmount'])
+
+df1_D.columns
+
+furniture = df1_D.set_index('DailyDate')
+
+furniture.index
+
+y = furniture['SubmitAmount'].resample('MS').mean()
+
+y['2019':]
+
+y.plot(figsize=(15, 6))
+plt.show()
+
+from pylab import rcParams
+rcParams['figure.figsize'] = 20, 8
+decomposition = sm.tsa.seasonal_decompose(y, model='additive')
+fig = decomposition.plot()
+plt.show()
+
+p = d = q = range(0, 2)
+pdq = list(itertools.product(p, d, q))
+seasonal_pdq = [(x[0], x[1], x[2], 12) for x in list(itertools.product(p, d, q))]
+print('Examples of parameter combinations for Seasonal ARIMA...')
+print('SARIMAX: {} x {}'.format(pdq[1], seasonal_pdq[1]))
+print('SARIMAX: {} x {}'.format(pdq[1], seasonal_pdq[2]))
+print('SARIMAX: {} x {}'.format(pdq[2], seasonal_pdq[3]))
+print('SARIMAX: {} x {}'.format(pdq[2], seasonal_pdq[4]))
+
+for param in pdq:
+    for param_seasonal in seasonal_pdq:
+        try:
+            mod = sm.tsa.statespace.SARIMAX(y,
+                                            order=param,
+                                            seasonal_order=param_seasonal,
+                                            enforce_stationarity=False,
+                                            enforce_invertibility=False)
+            results = mod.fit()
+            print('ARIMA{}x{}12 - AIC:{}'.format(param, param_seasonal, results.aic))
+        except:
+            continue
+        
+mod = sm.tsa.statespace.SARIMAX(y,
+                                order=(1, 1, 1),
+                                seasonal_order=(1, 0, 0, 12),
+                                enforce_stationarity=False,
+                                enforce_invertibility=False)
+
+results = mod.fit()
+
+print(results.summary().tables[1])
+
+results.plot_diagnostics(figsize=(26, 18))
+plt.show()
+
+pred = results.get_prediction(start=pd.to_datetime('2019-01-01'), dynamic=False)
+pred_ci = pred.conf_int()
+ax = y['2014':].plot(label='observed')
+pred.predicted_mean.plot(ax=ax, label='One-step ahead Forecast', alpha=.7, figsize=(14, 7))
+ax.fill_between(pred_ci.index,
+                pred_ci.iloc[:, 0],
+                pred_ci.iloc[:, 1], color='k', alpha=.2)
+ax.set_xlabel('Date')
+ax.set_ylabel('Furniture Sales')
+plt.legend()
+plt.show()
+
+
+test_data_size = 160
+
+train_data = furniture[:-test_data_size]
+test_data = furniture[-test_data_size:]
+
+print(len(train_data))
+
+print(len(test_data))
+
+DFF_Final.info()
+
+DFF_sales = DFF_Final
+
+#### LSTM 
+##https://towardsdatascience.com/predicting-sales-611cb5a252de
+
+DFF_sales['WeekDate'] = DFF_sales['WeekDate'].astype('datetime64[ns]')
+
+
+DFF_sales1.info()
+
+DFF_sales['Week'] = DFF_sales['WeekDate'].dt.date
+
+DFF_sales1= DFF_sales
+
+DFF_sales1 = DFF_sales1[['SubmitAmount', 'SubmitCount','Week']]
+
+#plot monthly sales
+
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0] = 15
+fig_size[1] = 5
+plt.rcParams["figure.figsize"] = fig_size
+
+plt.title('Time vs Submit')
+plt.ylabel('Submit Amount')
+plt.xlabel('Time')
+plt.grid(True)
+plt.autoscale(axis='x',tight=True)
+plt.plot(DFF_sales1['SubmitAmount'])
+
+#create a new dataframe to model the difference
+
+DFF_sales1.info()
+
+lag_variables = ["SubmitAmount", "SubmitCount"]
+
+dai_data = DFF_sales1.set_index(["Week"])
+lagged_data = dai_data.loc[:, lag_variables].shift(1)
+
+def get_moving_windows(dataset, train_len, test_len, date_col):
+    
+    # Calculate windows for the training and testing data based on the train_len and test_len arguments
+    unique_dates = dataset[date_col].unique()
+    unique_dates.sort()
+    num_dates = len(unique_dates)
+    num_windows = (num_dates - train_len) // test_len
+    print("Number of Training Windows: ", num_windows)
+    
+    windows = []
+    for i in range(num_windows):
+        train_start_date = unique_dates[i]
+        train_end_date = unique_dates[(i + train_len - 1)]
+        test_start_date = unique_dates[(i + train_len)]
+        test_end_date = unique_dates[(i + train_len + test_len - 1)]
+        
+        window = {'train_start_date': train_start_date, 
+                  'train_end_date': train_end_date, 
+                  'test_start_date': test_start_date,
+                  'test_end_date': test_end_date}
+        windows.append(window)
+        
+return windows
+
+Illu_Submit= DFF_Final[['SubmitCount','IllustrationCount']]
+
+Out79 = Illu_Submit.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\Illu_Submit.csv', index = None, header=True)      
+
+corr = Illu_Submit.corr()
+corr.style.background_gradient(cmap='coolwarm')
+corr.style.background_gradient(cmap='coolwarm').set_precision(2)
+
+corr.style.background_gradient(cmap='viridis').set_precision(2)
+
+### target Submit Amount
+y = Illu_Submit['SubmitCount']
+X = Illu_Submit['IllustrationCount']
+
+X2 = sm.add_constant(X)
+est = sm.OLS(y, X2)
+est2 = est.fit()
+print(est2.summary())
+
+Illu_Submit.info()
+
+DFF_Final['IllustrationPremium'] = DFF_Final['ContractSum']
+
+Illu_Submit1= DFF_Final[['SubmitAmount','ContractSum']]
+
+Out80 = Illu_Submit1.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\Illu_Submit1.csv', index = None, header=True)
+
+corr = Illu_Submit1.corr()
+corr.style.background_gradient(cmap='coolwarm')
+corr.style.background_gradient(cmap='coolwarm').set_precision(2)
+
+corr.style.background_gradient(cmap='viridis').set_precision(2)
+
+### target Submit Amount
+y = Illu_Submit1['SubmitCount']
+X = Illu_Submit1['IllustrationCount']
+
+Out79 = Illu_Submit.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\Illu_Submit.csv', index = None, header=True) 
+
+X2 = sm.add_constant(X)
+est = sm.OLS(y, X2)
+est2 = est.fit()
+print(est2.summary())
+
+Illu_Submit1.info()
+
+## See the columns
+
+Illu_Submit.columns
+
+# Draw the scatter plot
+
+plt.scatter(DFF_Final['SubmitAmount'], DFF_Final['IllustrationCount'])
+
+plt.title('Hypothetical:SubmitAmount to IllustrationCount')
+
+plt.xlabel('SubmitAmount')
+
+plt.ylabel('IllustrationCount')
+
+plt.show()
+
+### Try a GBM Model
+
+from h2o.estimators.gbm import H2OGradientBoostingEstimator
+
+import h2o
+import time
+import seaborn
+import itertools
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from h2o.estimators.glm import H2OGeneralizedLinearEstimator
+from h2o.estimators.gbm import H2OGradientBoostingEstimator
+from h2o.estimators.random_forest import H2ORandomForestEstimator
+
+from h2o.grid.grid_search import H2OGridSearch
+from h2o.estimators.gbm import H2OGradientBoostingEstimator
+from h2o.estimators.random_forest import H2ORandomForestEstimator
+from h2o.estimators.deeplearning import H2ODeepLearningEstimator
+import os, time, sys
+import warnings
+warnings.filterwarnings("ignore")
+
+DFF_sales.info()
+
+DFF_sales2= DFF_sales[['SubmitAmount','IllustrationCount','IllustrationPremium','Week']]
+
+ 
+from sklearn.model_selection import train_test_split
+
+train2, test2 = train_test_split(DFF_sales2, test_size=0.1)
+
+test3=test2
+
+train2.head()
+
+X = list(train2.columns)
+X.remove(y)
+X.remove('Week')
+X
+
+train2_h2o = h2o.H2OFrame(train2)
+
+test2_h2o = h2o.H2OFrame(test2)
+
+# Identify predictors and response
+x = train2_h2o.columns
+y = "SubmitAmount"
+
+
+
+#x.remove(y)
+h2o.estimators.xgboost.H2OXGBoostEstimator.available()
+
+gbm_params1 = {'learn_rate': [0.01, 0.1],
+                'max_depth': [3, 5, 9],
+                'sample_rate': [0.8, 1.0],
+                'col_sample_rate': [0.2, 0.5, 1.0]}
+
+# Train and validate a cartesian grid of GBMs
+gbm_grid1 = H2OGridSearch(model=H2OGradientBoostingEstimator,
+                          grid_id='gbm_grid1',
+                          hyper_params=gbm_params1)
+gbm_grid1.train(x=x, y=y,
+                training_frame=train2_h2o,
+                validation_frame=test2_h2o,
+                ntrees=100,
+                seed=1)
+
+gbm_gridperf1 = gbm_grid1.get_grid(sort_by='mae', decreasing=True)
+
+best_gbm1 = gbm_gridperf1.models[0]
+
+# Now let's evaluate the model performance on a test set
+# so we get an honest estimate of top model performance
+best_gbm_perf1 = best_gbm1.model_performance(test2_h2o)
+
+best_gbm_perf1
+
+pred_gbm = best_gbm1.predict(test2_h2o)
+
+test2_pre = pred_gbm.as_data_frame()
+
+test2= test2_h2o.as_data_frame()
+
+test2['predictedSubmitAmt'] = test2_pre['predict']
+
+def mape(actual, pred): 
+    actual, pred = np.array(actual),np.array(pred)
+    return np.mean(np.abs((actual-pred)/actual))*100
+
+actual = test2['SubmitAmount']
+pred = test2['predictedSubmitAmt']
+
+mape(actual,pred)
+
+### Lets append the dataframe to dateframe to add the dates:
+
+
+
+Out79 = test2.to_csv (r'C:\Users\test\Documents\NWSubIllusWeeklyReviews\Output\test2.csv', index = None, header=True) 
+
+test2['Week'] = test2['Week'].astype('datetime64[ns]')
+    
+
+h2o.cluster().shutdown()
+
+
+
+
+
+

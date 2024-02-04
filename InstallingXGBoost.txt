@@ -1,0 +1,10 @@
+Install regular Python other than Anaconda
+
+Click on the windows icon (start button!)
+
+Select and expand the anaconda folder
+
+Run the Anaconda Prompt (as Administrator)
+
+
+conda install -c anaconda py-xgboost

@@ -1,0 +1,31 @@
+### Stept to install XGBoost
+
+### Download xgboost-0.81-cp37-cp37m-win_amd64 from the website
+
+### Open the Anaconda command prompt and navigate to the directory where you downloaded the package
+
+C:\Users\DanSarkar\Downloads>pip install xgboost-0.81-cp37-cp37m-win_amd64.whl
+
+### Installing Keras
+
+C:\Users\DanSarkar\Downloads>pip install keras
+
+### Installing Tesnsor Flow
+C:\Users\DanSarkar\Downloads>conda install tensorflow
+
+### Installing NLTK
+C:\Users\DanSarkar\Downloads>pip install -U nltk
+
+### Then in the cosole type the next two lines
+
+ import nltk
+ nltk.download()
+
+## showing info http://nltk.github.com/nltk_data/
+
+###In the GUI window that opens simply press the 'Download' button to download all corpora or 
+### go to the 'Corpora' tab and only download the ones you need/want.
+
+
+
+
