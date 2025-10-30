@@ -194,4 +194,6 @@ def update_weekly_trend_chart(selected_pharmacies):
 # Run the app
 if __name__ == "__main__":
     app.run_server(host="127.0.0.1", port=8050, debug=True)
+    
+    # To preview: http://127.0.0.1:8050/
 
